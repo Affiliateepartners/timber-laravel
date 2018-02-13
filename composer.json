@@ -3,8 +3,8 @@
     "description": "Timber.io PHP Laravel integration",
     "type": "library",
     "require": {
-        "liteweb/timber-api": "^1.0",
-        "liteweb/timber-monolog": "^1.0"
+        "liteweb/timber-api": "^1.1",
+        "liteweb/timber-monolog": "^1.1"
     },
     "license": "MIT",
     "authors": [
