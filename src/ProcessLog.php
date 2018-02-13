@@ -19,7 +19,7 @@ class ProcessLog implements ShouldQueue
         $this->body = $body;
     }
 
-    public function handle(\Liteweb\Timber\TimberApi\TimberApi $api)
+    public function handle(\Liteweb\TimberApi\TimberApi $api)
     {
     	$status = \App\Models\LogStatus::create([
                     'unique_id' => uniqid(),

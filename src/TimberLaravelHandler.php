@@ -13,11 +13,11 @@ class TimberLaravelHandler extends \Monolog\Handler\AbstractProcessingHandler
 
     protected function getDefaultFormatter(): \Monolog\Formatter\FormatterInterface
     {
-        return new \Liteweb\Timber\TimberMonolog\TimberFormatter();
+        return new \Liteweb\TimberMonolog\TimberFormatter();
     }
 
     protected function write(array $record)
     {
-        \Liteweb\Timber\TimberLaravel\ProcessLog::dispatch($record['formatted'])->onQueue('timber');
+        \Liteweb\TimberLaravel\ProcessLog::dispatch($record['formatted'])->onQueue('timber');
     }
 }

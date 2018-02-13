@@ -39,12 +39,12 @@ class TimberServiceProvider extends ServiceProvider
     {
         $this->app->configureMonologUsing(function ($monolog)
         {
-            $monolog->pushHandler(new \Liteweb\Timber\TimberLaravel\TimberLaravelHandler());
+            $monolog->pushHandler(new \Liteweb\TimberLaravel\TimberLaravelHandler());
         });
 
-        $this->app->bind(\Liteweb\Timber\TimberApi\TimberApi::class, function ($app)
+        $this->app->bind(\Liteweb\TimberApi\TimberApi::class, function ($app)
         {
-            $tApi = new \Liteweb\Timber\TimberApi\TimberApi();
+            $tApi = new \Liteweb\TimberApi\TimberApi();
             $tApi->setAuthToken($app['config']['timber']['api_key']);
 
             return $tApi;
