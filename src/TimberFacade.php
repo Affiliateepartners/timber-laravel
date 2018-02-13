@@ -1,6 +1,6 @@
 <?php
 
-namespace Liteweb\Timber\TimberLaravel;
+namespace Liteweb\TimberLaravel;
 
 class TimberFacade extends \Illuminate\Support\Facades\Facade
 {

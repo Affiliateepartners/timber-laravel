@@ -1,6 +1,6 @@
 <?php
 
-namespace Liteweb\Timber\TimberLaravel;
+namespace Liteweb\TimberLaravel;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
