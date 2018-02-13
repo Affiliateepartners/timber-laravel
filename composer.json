@@ -1,6 +1,6 @@
 {
     "name": "liteweb/timber-laravel",
-    "description": "Timber PHP Laravel integration",
+    "description": "Timber.io PHP Laravel integration",
     "type": "library",
     "require": {
         "liteweb/timber-api": "^1.0",
