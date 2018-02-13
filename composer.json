@@ -1,0 +1,21 @@
+{
+    "name": "liteweb/timber-laravel",
+    "description": "Timber PHP Laravel integration",
+    "type": "library",
+    "require": {
+        "liteweb/timber-api": "^1.0",
+        "liteweb/timber-monolog": "^1.0"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Michal Kluczek",
+            "email": "michal.kluczek@liteweb.io"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Liteweb\\Timber\\" : "src"
+        }
+    }
+}
