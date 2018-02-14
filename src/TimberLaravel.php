@@ -169,7 +169,7 @@ class TimberLaravel
             'error' =>
             [
                 'message'   => "{$e->getMessage()} in {$e->getFile()} (line {$e->getLine()})",
-                'name'      => $message,
+                'name'      => substr($message, 0, 256);
                 'backtrace' => array_slice(array_map(function($el)
                     {
                         return  [
