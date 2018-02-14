@@ -106,6 +106,9 @@ class TimberLaravel
 
     public function httpRequest($request)
     {
+        // We have to grab headers before conversion as they are somehow lost
+        $headers = $request->getHeaders();
+
         if($request instanceof \GuzzleHttp\Psr7\ServerRequest)
         {
             $httpFoundationFactory = new \Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory();
@@ -119,7 +122,7 @@ class TimberLaravel
         }
 
         $scheme    = $request->secure() ? 'https' : 'http';
-        $host      = $request->header('host') ?? $request->getHost();
+        $host      = $headers['Host'] ?? $request->getHost();
         $addr      = $request->ip() ?? gethostbyname($request->getHost());
         $direction = $request->ip() ? 'incoming' : 'outgoing';
         $query_str = http_build_query($request->query());
@@ -134,7 +137,7 @@ class TimberLaravel
 
         $http_request = [
             'direction'    => $direction,
-            'headers_json' => json_encode($request->header()),
+            'headers_json' => json_encode($headers),
             'host'         => $host,
             'method'       => $request->method(),
             'path'         => $request->path(),
