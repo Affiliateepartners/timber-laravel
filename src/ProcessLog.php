@@ -21,17 +21,6 @@ class ProcessLog implements ShouldQueue
 
     public function handle(\Liteweb\TimberApi\TimberApi $api)
     {
-    	$status = \App\Models\LogStatus::create([
-                    'unique_id' => uniqid(),
-        ]);
-
-        $status->created = \Carbon\Carbon::now();
-        $status->save();
-
         $response = $api->sendJsonLogLine($this->body);
-
-        $status->delivered = \Carbon\Carbon::now();
-        $status->code      = $response->getStatusCode();
-        $status->save();
     }
 }
