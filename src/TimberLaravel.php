@@ -106,17 +106,22 @@ class TimberLaravel
 
     public function httpRequest($request)
     {
-        // We have to grab headers before conversion as they are somehow lost
-        $headers = $request->getHeaders();
+        $headers = [];
 
         if($request instanceof \GuzzleHttp\Psr7\ServerRequest)
         {
             $httpFoundationFactory = new \Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory();
 
+            // We have to grab headers before conversion as they are somehow lost
+            $headers = $request->getHeaders();
+
             $request     = \Illuminate\Http\Request::createFromBase($httpFoundationFactory->createRequest($request));
         }
-
-        if(!($request instanceof \Illuminate\Http\Request))
+        elseif($request instanceof \Illuminate\Http\Request)
+        {
+            $headers = $request->header();
+        }
+        else
         {
             throw new \Exception('Request parameter was not of type Illuminate\Http\Request. Found: ' . get_class($request));
         }
