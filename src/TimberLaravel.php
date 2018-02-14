@@ -113,7 +113,7 @@ class TimberLaravel
             $httpFoundationFactory = new \Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory();
 
             // We have to grab headers before conversion as they are somehow lost
-            $headers = $request->getHeaders();
+            $headers = array_map(function($v) { return $v[0]; }, $request->getHeaders());
 
             $request     = \Illuminate\Http\Request::createFromBase($httpFoundationFactory->createRequest($request));
         }
