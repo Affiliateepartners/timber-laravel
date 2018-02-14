@@ -4,7 +4,7 @@
     "type": "library",
     "require": {
         "liteweb/timber-api": "^1.1",
-        "liteweb/timber-monolog": "^1.1"
+        "liteweb/timber-monolog": "^1.2"
     },
     "license": "MIT",
     "authors": [
