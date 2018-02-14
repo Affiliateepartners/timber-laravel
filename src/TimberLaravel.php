@@ -29,6 +29,11 @@ class TimberLaravel
         $this->log('WARNING', $msg, $data);
     }
 
+    public function warning(string $msg, array $data = [])
+    {
+        $this->log('WARNING', $msg, $data);
+    }
+
     public function error(string $msg, array $data = [])
     {
         $this->log('ERROR', $msg, $data);
