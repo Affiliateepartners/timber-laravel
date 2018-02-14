@@ -14,35 +14,34 @@ class TimberLaravel
         $this->context['TAPI_do_format'] = true;
     }
 
-
-    public function debug(string $msg, array $data)
+    public function debug(string $msg, array $data = [])
     {
         $this->log('DEBUG', $msg, $data);
     }
 
-    public function info(string $msg, array $data)
+    public function info(string $msg, array $data = [])
     {
         $this->log('INFO', $msg, $data);
     }
 
-    public function warn(string $msg, array $data)
+    public function warn(string $msg, array $data = [])
     {
         $this->log('WARNING', $msg, $data);
     }
 
-    public function error(string $msg, array $data)
+    public function error(string $msg, array $data = [])
     {
         $this->log('ERROR', $msg, $data);
     }
 
-    public function critical(string $msg, array $data)
+    public function critical(string $msg, array $data = [])
     {
         $this->log('CRITICAL', $msg, $data);
     }
 
     private function log(string $level, string $msg, array $data)
     {
-        $this->context['TAPI_event'] = ['custom' => ['Additional Data' => $data]];
+        $data and $this->context['TAPI_event'] = ['custom' => ['Additional Data' => $data]];
 
         \Log::log($level, $msg, $this->context);
     }
