@@ -4,7 +4,9 @@
     "type": "library",
     "require": {
         "liteweb/timber-api": "^1.1",
-        "liteweb/timber-monolog": "^1.2"
+        "liteweb/timber-monolog": "^1.2",
+        "symfony/psr-http-message-bridge": "^1.0",
+        "zendframework/zend-diactoros": "^1.7",
     },
     "license": "MIT",
     "authors": [

@@ -30,7 +30,7 @@ class TimberServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole())
         {
             $this->publishes([
-                __DIR__ . '/../config/timber.php' => config_path(static::$abstract . '.php'),
+                __DIR__ . '/config/timber.php' => config_path(static::$abstract . '.php'),
             ], 'config');
         }
     }
