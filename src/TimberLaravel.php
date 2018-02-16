@@ -51,6 +51,11 @@ class TimberLaravel
         \Log::log($level, $msg, $this->context);
     }
 
+    public static function getRequestId()
+    {
+        return self::$unique_id;
+    }
+
     public function httpResponse($response, $override_id = NULL)
     {
         $override_id and static::$unique_id = $override_id;
