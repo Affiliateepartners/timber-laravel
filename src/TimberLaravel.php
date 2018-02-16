@@ -51,8 +51,10 @@ class TimberLaravel
         \Log::log($level, $msg, $this->context);
     }
 
-    public function httpResponse($response)
+    public function httpResponse($response, $override_id = NULL)
     {
+        $override_id and static::$unique_id = $override_id;
+
         if($response instanceof \GuzzleHttp\Psr7\Response)
         {
             $httpFoundationFactory = new \Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory();
@@ -104,8 +106,10 @@ class TimberLaravel
         \Log::info($where . ' response ' . $response->getStatusCode(), $this->context);
     }
 
-    public function httpRequest($request)
+    public function httpRequest($request, $override_id = NULL)
     {
+        $override_id and static::$unique_id = $override_id;
+
         $headers = [];
 
         if($request instanceof \GuzzleHttp\Psr7\ServerRequest)
