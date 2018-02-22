@@ -205,7 +205,7 @@ class TimberLaravel
 
         // There must be a backtrace...
         if(!$this->context['TAPI_event']['error']['backtrace'])
-            $this->context['TAPI_event']['error']['backtrace'] = ['file' => '_no_trace_', 'line' => 1, 'function' => '_no_trace_'];
+            $this->context['TAPI_event']['error']['backtrace'] = [['file' => '_no_trace_', 'line' => 1, 'function' => '_no_trace_']];
 
         \Log::critical($message, $this->context);
     }
