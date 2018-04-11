@@ -1,12 +1,14 @@
 {
     "name": "liteweb/timber-laravel",
+    "version": "1.2.0",
     "description": "Timber.io PHP Laravel integration",
     "type": "library",
     "require": {
-        "liteweb/timber-api": "^1.1",
-        "liteweb/timber-monolog": "^1.2",
+        "liteweb/timber-api": "~1.1.0",
+        "liteweb/timber-monolog": "~1.2.0",
         "symfony/psr-http-message-bridge": "^1.0",
-        "zendframework/zend-diactoros": "^1.7"
+        "zendframework/zend-diactoros": "^1.7",
+        "guzzlehttp/guzzle": "^6.3"
     },
     "license": "MIT",
     "authors": [
@@ -18,6 +20,17 @@
     "autoload": {
         "psr-4": {
             "Liteweb\\TimberLaravel\\" : "src"
+        }
+    },
+    "extra":
+    {
+        "laravel": {
+            "providers": [
+                "Liteweb\\TimberLaravel\\TimberServiceProvider"
+            ],
+            "aliases": {
+                "Timber": "Liteweb\\TimberLaravel\\TimberFacade"
+            }
         }
     }
 }

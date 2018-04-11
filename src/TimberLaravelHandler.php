@@ -18,6 +18,6 @@ class TimberLaravelHandler extends \Monolog\Handler\AbstractProcessingHandler
 
     protected function write(array $record)
     {
-        \Liteweb\TimberLaravel\ProcessLog::dispatch($record['formatted'])->onQueue('timber');
+        ProcessLog::dispatch($record['formatted'])->onQueue('timber');
     }
 }

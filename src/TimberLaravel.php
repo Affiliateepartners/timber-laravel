@@ -4,62 +4,93 @@ namespace Liteweb\TimberLaravel;
 
 class TimberLaravel
 {
-    private $context;
-
-    private static $unique_id;
-    private static $pending_https = [];
+    private $monologData;
 
     function __construct()
     {
-        $this->context['TAPI_do_format'] = true;
+        $this->monologData['TAPI_do_format'] = true;
     }
 
-    public function debug(string $msg, array $data = [])
+    public function debug(string $msg, array $data = [], bool $customEvent = true)
     {
-        $this->log('DEBUG', $msg, $data);
+        $this->log('DEBUG', $msg, $data, $customEvent);
     }
 
-    public function info(string $msg, array $data = [])
+    public function info(string $msg, array $data = [], bool $customEvent = true)
     {
-        $this->log('INFO', $msg, $data);
+        $this->log('INFO', $msg, $data, $customEvent);
     }
 
-    public function warn(string $msg, array $data = [])
+    public function warn(string $msg, array $data = [], bool $customEvent = true)
     {
-        $this->log('WARNING', $msg, $data);
+        $this->log('WARNING', $msg, $data, $customEvent);
     }
 
-    public function warning(string $msg, array $data = [])
+    public function warning(string $msg, array $data = [], bool $customEvent = true)
     {
-        $this->log('WARNING', $msg, $data);
+        $this->log('WARNING', $msg, $data, $customEvent);
     }
 
-    public function error(string $msg, array $data = [])
+    public function error(string $msg, array $data = [], bool $customEvent = true)
     {
-        $this->log('ERROR', $msg, $data);
+        $this->log('ERROR', $msg, $data, $customEvent);
     }
 
-    public function critical(string $msg, array $data = [])
+    public function critical(string $msg, array $data = [], bool $customEvent = true)
     {
-        $this->log('CRITICAL', $msg, $data);
+        $this->log('CRITICAL', $msg, $data, $customEvent);
     }
 
-    private function log(string $level, string $msg, array $data)
+    private function log(string $level, string $msg, array $data, bool $customEvent = true)
     {
-        $data and $this->context['TAPI_event'] = ['custom' => ['Additional Data' => $data]];
+        if($customEvent and $data)
+        {
+            $this->monologData['TAPI_event'] = ['custom' => ['Additional Data' => $data]];
+        }
+        elseif(!$customEvent and $data)
+        {
+            $this->monologData['TAPI_event'] = $data;
+        }
 
-        \Log::log($level, $msg, $this->context);
+        $this->monologData['TAPI_context'] = $this->craftContext();
+
+        \Log::log($level, $msg, $this->monologData);
     }
 
-    public static function getRequestId()
+    private function craftContext()
     {
-        return self::$unique_id;
+        $context = [];
+        $request = request();
+
+        if(!$request)
+        {
+            throw new \Exception('TimberLaravel supports only executions via http request');
+        }
+
+        $headers = array_map(function($v) { return $v[0]; }, $request->headers->all());
+        $salt = "{$request->server('REQUEST_TIME_FLOAT')}{$request->server('REMOTE_PORT')}{$request->server('REQUEST_URI')}{$request->server('REMOTE_ADDR')}";
+        $context['http'] = [
+            'host'        => $headers['host'] ?? $request->getHost(),
+            'method'      => $request->method(),
+            'path'        => $request->path(),
+            'remote_addr' => $request->ip() ?? gethostbyname($request->getHost()),
+            'request_id'  => sha1($salt),
+        ];
+
+        if($user = $request->user())
+        {
+            $context['user'] = [
+                'email' => $user->email,
+                'name'  => $user->name,
+                'id'    => (string)$user->id,
+            ];
+        }
+
+        return $context;
     }
 
-    public function httpResponse($response, $override_id = NULL)
+    public function httpResponse($response, bool $incoming = true)
     {
-        $override_id and static::$unique_id = $override_id;
-
         if($response instanceof \GuzzleHttp\Psr7\Response)
         {
             $httpFoundationFactory = new \Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory();
@@ -72,28 +103,12 @@ class TimberLaravel
             throw new \Exception('Response parameter was not of type Symfony\Component\HttpFoundation\Response. Found: ' . get_class($response));
         }
 
-        $pending = array_pop(static::$pending_https);
-
-        if(!$pending or !isset($pending['url'], $pending['http'], $pending['http_request']))
-        {
-            throw new \Exception('Attempt to prepare response without preparing request');
-        }
-
-        $request = $pending['http_request'];
-
-        $direction = 'incoming' === $request['direction'] ? 'outgoing' : 'incoming';
+        $direction = $incoming ? 'incoming' : 'outgoing';
 
         $http_response = [
             'direction'    => $direction,
             'headers_json' => json_encode(array_map(function($v) { return $v[0]; }, $response->headers->all())),
-            'request_id'   => $this->getUniqueId(),
             'status'       => $response->getStatusCode(),
-            'request'      => [
-                'host'         => $request['host'],
-                'method'       => $request['method'],
-                'path'         => $request['path'],
-                'scheme'       => $request['scheme'],
-            ]
         ];
 
         if($response->getContent())
@@ -103,18 +118,13 @@ class TimberLaravel
             $http_response['content_length'] = strlen($body);
         }
 
-        $this->context['TAPI_context'] = ['http'          => $pending['http']];
-        $this->context['TAPI_event']   = ['http_response' => $http_response];
-
         $where = 'incoming' === $direction ? 'Received' : 'Sent';
 
-        \Log::info($where . ' response ' . $response->getStatusCode(), $this->context);
+        $this->info($where . ' response ' . $response->getStatusCode(), ['http_response' => $http_response], false);
     }
 
-    public function httpRequest($request, $override_id = NULL)
+    public function httpRequest($request, bool $outgoing = true)
     {
-        $override_id and static::$unique_id = $override_id;
-
         $headers = [];
 
         if($request instanceof \GuzzleHttp\Psr7\ServerRequest)
@@ -138,16 +148,8 @@ class TimberLaravel
         $scheme    = $request->secure() ? 'https' : 'http';
         $host      = $headers['Host'] ?? $request->getHost();
         $addr      = $request->ip() ?? gethostbyname($request->getHost());
-        $direction = $request->ip() ? 'incoming' : 'outgoing';
+        $direction = $outgoing ? 'outgoing' : 'incoming';
         $query_str = http_build_query($request->query());
-
-        $http = [
-            'host'        => $host,
-            'method'      => $request->method(),
-            'path'        => $request->path(),
-            'remote_addr' => $addr,
-            'request_id'  => $this->getUniqueId(),
-        ];
 
         $http_request = [
             'direction'    => $direction,
@@ -155,7 +157,6 @@ class TimberLaravel
             'host'         => $host,
             'method'       => $request->method(),
             'path'         => $request->path(),
-            'request_id'   => $this->getUniqueId(),
             'scheme'       => $scheme,
         ];
 
@@ -166,52 +167,32 @@ class TimberLaravel
             $http_request['content_length'] = strlen($body);
         }
 
-        $query_str and $http_request['query_string'] = $query_str;
-
-        static::$pending_https[] = [
-            'url' => $request->fullUrl(),
-            'http' => $http,
-            'http_request' => $http_request,
-        ];
-
         $where = 'incoming' === $direction ? 'at' : 'to';
 
-        $this->context['TAPI_context'] = ['http'         => $http];
-        $this->context['TAPI_event']   = ['http_request' => $http_request];
-
-        \Log::info(ucfirst($direction) . ' query ' . $where . ' ' . trim($request->fullUrl(), ':'), $this->context);
+        $this->info(ucfirst($direction) . ' query ' . $where . ' ' . trim($request->fullUrl(), ':'), ['http_request' => $http_request], false);
     }
 
     public function exception(\Exception $e, string $message = NULL)
     {
         $message = $message ?? $e->getMessage();
 
-        $this->context['TAPI_event'] = [
-            'error' =>
-            [
-                'message'   => "{$e->getMessage()} in {$e->getFile()} (line {$e->getLine()})",
-                'name'      => substr($message, 0, 256),
-                'backtrace' => array_slice(array_map(function($el)
-                    {
-                        return  [
-                            'file'     => $el['file']     ?? '_NULL_',
-                            'line'     => $el['line']     ??  1,
-                            'function' => $el['function'] ?? '_NULL_'
-                        ];
-                    }, $e->getTrace()),
-                    0, 20)
-            ]
+       $error = [
+            'message'   => "{$e->getMessage()} in {$e->getFile()} (line {$e->getLine()})",
+            'name'      => substr($message, 0, 256),
+            'backtrace' => array_slice(array_map(function($el)
+                {
+                    return  [
+                        'file'     => $el['file']     ?? '_NULL_',
+                        'line'     => $el['line']     ??  1,
+                        'function' => $el['function'] ?? '_NULL_'
+                    ];
+                }, $e->getTrace()),
+                0, 20)
         ];
 
         // There must be a backtrace...
-        if(!$this->context['TAPI_event']['error']['backtrace'])
-            $this->context['TAPI_event']['error']['backtrace'] = [['file' => '_no_trace_', 'line' => 1, 'function' => '_no_trace_']];
+        $error['backtrace'] or $error['backtrace'] = [['file' => '_no_trace_', 'line' => 1, 'function' => '_no_trace_']];
 
-        \Log::critical($message, $this->context);
-    }
-
-    private function getUniqueId()
-    {
-        return static::$unique_id = static::$unique_id ?? \Ramsey\Uuid\Uuid::uuid4()->toString();
+        $this->critical($message, ['error' => $error], false);
     }
 }

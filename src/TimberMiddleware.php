@@ -14,7 +14,7 @@ class TimberMiddleware
      */
     public function handle(\Illuminate\Http\Request $request, \Closure $next)
     {
-        \Timber::httpRequest($request);
+        \Timber::httpRequest($request, false);
 
         return $next($request);
     }
@@ -28,6 +28,6 @@ class TimberMiddleware
      */
     public function terminate(\Illuminate\Http\Request $request, \Symfony\Component\HttpFoundation\Response $response)
     {
-        \Timber::httpResponse($response);
+        \Timber::httpResponse($response, false);
     }
 }

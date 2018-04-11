@@ -27,19 +27,16 @@ class TimberServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        if ($this->app->runningInConsole())
-        {
-            $this->publishes([
-                __DIR__ . '/config/timber.php' => config_path(static::$abstract . '.php'),
-            ], 'config');
-        }
+        $this->publishes([
+            __DIR__ . '/config/timber.php' => config_path(static::$abstract . '.php'),
+        ], 'config');
     }
 
     public function register()
     {
         $this->app->configureMonologUsing(function ($monolog)
         {
-            $monolog->pushHandler(new \Liteweb\TimberLaravel\TimberLaravelHandler());
+            $monolog->pushHandler(new TimberLaravelHandler());
         });
 
         $this->app->bind(\Liteweb\TimberApi\TimberApi::class, function ($app)
