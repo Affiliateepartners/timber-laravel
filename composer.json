@@ -1,6 +1,6 @@
 {
     "name": "liteweb/timber-laravel",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "description": "Timber.io PHP Laravel integration",
     "type": "library",
     "require": {
