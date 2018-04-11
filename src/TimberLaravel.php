@@ -5,6 +5,7 @@ namespace Liteweb\TimberLaravel;
 class TimberLaravel
 {
     private $monologData;
+    private $customContextData;
 
     function __construct()
     {
@@ -59,38 +60,34 @@ class TimberLaravel
 
     private function craftContext()
     {
+        $context_data = $this->customContextData ?? new ContextData(request());
+
         $context = [];
-        $request = request();
 
-        if(!$request)
-        {
-            throw new \Exception('TimberLaravel supports only executions via http request');
-        }
-
-        $headers = array_map(function($v) { return $v[0]; }, $request->headers->all());
-        $salt = "{$request->server('REQUEST_TIME_FLOAT')}{$request->server('REMOTE_PORT')}{$request->server('REQUEST_URI')}{$request->server('REMOTE_ADDR')}";
         $context['http'] = [
-            'host'        => $headers['host'] ?? $request->getHost(),
-            'method'      => $request->method(),
-            'path'        => $request->path(),
-            'remote_addr' => $request->ip() ?? gethostbyname($request->getHost()),
-            'request_id'  => sha1($salt),
+            'host'        => $context_data->http_host,
+            'method'      => $context_data->http_method,
+            'path'        => $context_data->http_path,
+            'remote_addr' => $context_data->http_remote_addr,
+            'request_id'  => $context_data->http_request_id,
         ];
 
-        if($user = $request->user())
+        if($context_data->user_id)
         {
             $context['user'] = [
-                'email' => $user->email,
-                'name'  => $user->name,
-                'id'    => (string)$user->id,
+                'email' => $context_data->user_email,
+                'name'  => $context_data->user_name,
+                'id'    => $context_data->user_id,
             ];
         }
 
         return $context;
     }
 
-    public function httpResponse($response, bool $incoming = true)
+    public function httpResponse($response, bool $incoming = true, ?\Liteweb\TimberLaravel\ContextData $customContextData = null)
     {
+        $this->customContextData = $customContextData;
+
         if($response instanceof \GuzzleHttp\Psr7\Response)
         {
             $httpFoundationFactory = new \Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory();
@@ -123,8 +120,10 @@ class TimberLaravel
         $this->info($where . ' response ' . $response->getStatusCode(), ['http_response' => $http_response], false);
     }
 
-    public function httpRequest($request, bool $outgoing = true)
+    public function httpRequest($request, bool $outgoing = true, ?\Liteweb\TimberLaravel\ContextData $customContextData = null)
     {
+        $this->customContextData = $customContextData;
+
         $headers = [];
 
         if($request instanceof \GuzzleHttp\Psr7\ServerRequest)
@@ -176,7 +175,7 @@ class TimberLaravel
     {
         $message = $message ?? $e->getMessage();
 
-       $error = [
+        $error = [
             'message'   => "{$e->getMessage()} in {$e->getFile()} (line {$e->getLine()})",
             'name'      => substr($message, 0, 256),
             'backtrace' => array_slice(array_map(function($el)

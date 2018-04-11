@@ -4,20 +4,20 @@ namespace Liteweb\TimberLaravel;
 
 class HttpClient extends \GuzzleHttp\Client
 {
-    public function __construct(array $config = [])
+    public function __construct(array $config = [], ?\Liteweb\TimberLaravel\ContextData $context_data = null)
     {
         $stack = \GuzzleHttp\HandlerStack::create();
 
-        $stack->push(\GuzzleHttp\Middleware::mapRequest(function (\Psr\Http\Message\RequestInterface $request)
+        $stack->push(\GuzzleHttp\Middleware::mapRequest(function (\Psr\Http\Message\RequestInterface $request) use ($context_data)
         {
-            \Timber::httpRequest(self::craftServerRequest($request));
+            \Timber::httpRequest(self::craftServerRequest($request), true, $context_data);
 
             return $request;
         }));
 
-        $stack->push(\GuzzleHttp\Middleware::mapResponse(function (\Psr\Http\Message\ResponseInterface $response)
+        $stack->push(\GuzzleHttp\Middleware::mapResponse(function (\Psr\Http\Message\ResponseInterface $response) use ($context_data)
         {
-            \Timber::httpResponse($response);
+            \Timber::httpResponse($response, true, $context_data);
 
             return $response;
         }));
