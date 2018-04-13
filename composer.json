@@ -21,16 +21,5 @@
         "psr-4": {
             "Liteweb\\TimberLaravel\\" : "src"
         }
-    },
-    "extra":
-    {
-        "laravel": {
-            "providers": [
-                "Liteweb\\TimberLaravel\\TimberServiceProvider"
-            ],
-            "aliases": {
-                "Timber": "Liteweb\\TimberLaravel\\TimberFacade"
-            }
-        }
     }
 }
