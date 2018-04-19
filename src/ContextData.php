@@ -14,6 +14,10 @@ class ContextData
     public $user_email;
     public $user_name;
 
+    public $system_hostname;
+    public $system_ip;
+    public $system_pid;
+
     public function __construct(\Illuminate\Http\Request $request)
     {
         $headers = array_map(function($v) { return $v[0]; }, $request->headers->all());
@@ -31,5 +35,9 @@ class ContextData
             $this->user_name  = $user->name;
             $this->user_id    = (string)$user->id;
         }
+
+        $this->system_hostname = gethostname();
+        $this->system_ip       = gethostbyname(gethostname());
+        $this->system_pid      = (int)getmypid();
     }
 }
