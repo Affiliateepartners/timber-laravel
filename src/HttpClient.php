@@ -23,6 +23,8 @@ class HttpClient extends \GuzzleHttp\Client
         }));
 
         $config['handler'] = $stack;
+        $config['connect_timeout'] = 30;
+        $config['timeout']         = 30;
 
         parent::__construct($config);
     }
