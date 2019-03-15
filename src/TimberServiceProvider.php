@@ -34,10 +34,13 @@ class TimberServiceProvider extends ServiceProvider
 
     public function register()
     {
-        $this->app->configureMonologUsing(function ($monolog)
-        {
-            $monolog->pushHandler(new TimberLaravelHandler());
-        });
+        $ver = explode(".",$this->app->version());
+		if($ver[0] == "5" && (int)$ver[1] < 6){
+			$this->app->configureMonologUsing(function ($monolog)
+			{
+				$monolog->pushHandler(new TimberLaravelHandler());
+			});
+		}
 
         $this->app->bind(\Liteweb\TimberApi\TimberApi::class, function ($app)
         {
